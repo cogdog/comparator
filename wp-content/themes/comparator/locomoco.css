@@ -1,0 +1,34 @@
+#main article img {
+	height: normal;
+	max-width: none;
+}
+
+
+/* ----------------------------= Forms =------------------------------------- */
+
+
+#comparatorform {
+
+}
+
+#comparatorform input[type="text"], #comparatorform textarea {
+	width:90%;
+}
+
+#comparatorform label {
+	font-weight: bold;
+}
+
+#comparatorform fieldset  {
+	margin: 0 0 20px 0;
+}
+
+
+#commentform textarea {
+	width: 60%;
+	height: 150px;
+}
+
+.center-block {
+	float:none;
+}
