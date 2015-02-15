@@ -3,7 +3,7 @@
 				<div id="inner-footer" class="clearfix">
 		          <hr />
 					
-					<p class="pull-right"><a href="http://cogdog.ingo" id="credit320" title="By the dog">blame @cogdog</a></p>
+					<p class="pull-right"><a href="http://cogdog.info" id="credit320" title="By the dog">blame @cogdog</a></p>
 			
 					<p class="attribution">A SPLOT: <a href="<?php echo  site_url()?>"><?php bloginfo('name'); ?></a></p>
 				

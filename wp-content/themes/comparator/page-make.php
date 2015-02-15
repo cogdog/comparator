@@ -5,22 +5,33 @@ Template Name: Make a Comparator Form
 Create a new comporator
 */
 
-global $wp_query;
+if ( !is_user_logged_in() ) {
+	// already not logged in? go to desk.
+  	wp_redirect ( site_url() . '/desk' );
+  	exit;
+  	
+} elseif ( !current_user_can( 'edit_others_posts' ) ) {
+	// okay user, who are you? we know you are not an admin or editor
+		
+	// if the collector user not found, we send you to the desk
+	if ( !comparator_check_user() ) {
+		// now go to the desk and check in properly
+	  	wp_redirect ( site_url() . '/desk' );
+  		exit;
+  	}
+}
 
-// enqueue jquery for this form
-// add_action( 'wp_enqueue_scripts', 'comparator_enqueue_add_scripts' );
 
 // set af default values
-$feedback_msg = '';
+$feedback_msg = 'You are here to build a Comparator of before and after images? Do we have a form for you!';
+
 $cDimensions = 'large-landscape';
+$cCats = array( comparator_option('def_cat') ); // preload default category
 
+// status for new items
+$my_new_status = comparator_option('new_item_status');
+$box_style = '<div class="notify"><span class="symbol icon-info"></span> ';
 
-// status for new submissions (make option later)
-$my_new_status = 'publish';
-
-// a little mojo to get current page ID so we can build a link back here
-$post = $wp_query->post;
-$current_ID = $post->ID;
 
 // verify that a  form was submitted and it passes the nonce check
 if ( isset( $_POST['comparator_form_make_submitted'] ) && wp_verify_nonce( $_POST['comparator_form_make_submitted'], 'comparator_form_make' ) ) {
@@ -30,6 +41,7 @@ if ( isset( $_POST['comparator_form_make_submitted'] ) && wp_verify_nonce( $_POS
  		$cTags = 					sanitize_text_field( $_POST['cTags'] );	
  		$cDescription = 			esc_textarea( trim($_POST['cDescription']) );
  		$cDimensions =				$_POST['cDimensions'];
+ 		$cCats = 					( isset ($_POST['cCats'] ) ) ? $_POST['cCats'] : array();
  		
 			
  		// let's do some validation, store an error message for each problem found
@@ -39,7 +51,7 @@ if ( isset( $_POST['comparator_form_make_submitted'] ) && wp_verify_nonce( $_POS
  		
  		if ( count($errors) > 0 ) {
  			// form errors, build feedback string to display the errors
- 			$feedback_msg = '<div class="fade in alert alert-alert-error">Sorry, but there are a few errors in your entry. Please correct and try again.<ul>';
+ 			$feedback_msg = 'Sorry, but there are a few errors in your entry. Please correct and try again.<ul>';
  			
  			// Hah, each one is an oops, get it? 
  			foreach ($errors as $oops) {
@@ -48,6 +60,8 @@ if ( isset( $_POST['comparator_form_make_submitted'] ) && wp_verify_nonce( $_POS
  			
  			$feedback_msg .= '</ul></div>';
  			
+ 			$box_style = '<div class="notify notify-red"><span class="symbol icon-error"></span> ';
+ 			
  		} else {
  			
  			// good enough, let's make a post! Or a custom post type
@@ -55,7 +69,8 @@ if ( isset( $_POST['comparator_form_make_submitted'] ) && wp_verify_nonce( $_POS
 				'post_title' => $cTitle,
 				'post_content' => $cDescription,
 				'tags_input'  => $cTags,
-				'post_status' => $my_new_status,			
+				'post_status' => $my_new_status,
+				'post_category' => $cCats			
 			);
 
 			// insert as a post
@@ -67,38 +82,39 @@ if ( isset( $_POST['comparator_form_make_submitted'] ) && wp_verify_nonce( $_POS
 				// update the new tags			
 				wp_set_post_tags( $post_id, $cTags);
 				
-				
+				// get the ID for the before image
 				$before_id = get_attachment_id_by_src($_POST['cbeforeImageUrl']);
+				
+				// we will use this one for a thumbnail
 				set_post_thumbnail( $post_id, $before_id);
 				
+				// write the meta data, the images for before, after, and the size 
 				add_post_meta($post_id, 'before_img', $_POST['cbeforeImageUrl']);
 				add_post_meta($post_id, 'after_img', $_POST['cafterImageUrl']);
 				add_post_meta($post_id, 'compsize', $cDimensions);
-				
-				wp_set_post_terms( $post_id, 'splost');
-				
-				
-				if  ( $my_new_status == 'publish' ) {
-				
+							
+				if  ( $my_new_status == 'publish' ) {				
 					// build feedback if new things are automatically published
 					
 					// grab link to new thing
-					$cLink = get_permalink( $post_id );
-				
-					// feedback success
-					$feedback_msg = '<div class="fade in alert alert-alert-info">Your new Comparator has been created. Check out <a href="' . get_permalink( $post_id ) . '">' . $cTitle . '</a> or you can <a href="' . get_permalink( $current_ID ) .'">create another one</a>.</div>';  
+					$cLink = get_permalink( $post_id );						
+					
+					// feed back for published item
+					$feedback_msg = 'Your new comparator  <strong>' . $cTitle . '</strong>  has been created. You can <a href="'. wp_logout_url( $cLink  )  . '">view it now</a>. Or you can <a href="' . site_url() . '/make">make another</a>.';
 					
 				} else {
 					// feedback if new things are set to draft
-					$feedback_msg = '<div class="fade in alert alert-alert-info">Your new Comparator, "' . $cTitle . '" has been created. Once it has been approved it will appear on this site. Do you want to <a href="' . get_permalink( $current_ID ) .'">create another one</a>?</div>';  
+					$feedback_msg = 'Your new comparator  <strong>' . $cTitle . '</strong> has been submitted as a draft. You can <a href="'. wp_logout_url( site_url() . '/?p=' . $post_id  )  . '">preview it now</a>. Once it has been approved by a moderator, everyone can see it. Or you can <a href="' . site_url() . '/make">make another</a>.';	
 				
 				}
  
-			} else {
-			
-				// generic error of post creation failed
-				$feedback_msg = '<div class="fade in alert alert-alert-error">ERROR: the new Comparator could not be created. We are not sure why, but let someone know.</div>';
 			} // end if ($post_id)
+			
+			// set the gate	open, we are done.
+			
+			$is_published = true;
+			$box_style = '<div class="notify notify-green"><span class="symbol icon-tick"></span> ';	
+
 					
 		} // end count errors
 }
@@ -123,17 +139,7 @@ if ( isset( $_POST['comparator_form_make_submitted'] ) && wp_verify_nonce( $_POS
 						<section class="post_content clearfix" itemprop="articleBody">
 							<?php the_content(); ?>
 							
-							<?php 
-								if ( !is_user_logged_in() ) {
-								
-								$text = "Before you start please <a href='" .  get_bloginfo('url') . "/wp-login.php?autologin=splot' class='btn btn-primary'>activate lasers</a>";
-								
-								$content = '[alert type="warning" close="false" text="' . $text . '"]';
-								}
-								
-								echo do_shortcode( $content );		
-							?>
-
+							<?php echo $box_style . $feedback_msg . '</div>';?> 
 							
 						</section> <!-- end article section -->
 						
@@ -159,7 +165,7 @@ if ( isset( $_POST['comparator_form_make_submitted'] ) && wp_verify_nonce( $_POS
 					</article>
 					
 					<?php endif; ?>
-				<?php echo $feedback_msg?>
+
 				<br clear="both">
 				</div> <!-- end #main -->
   
@@ -176,9 +182,9 @@ if ( isset( $_POST['comparator_form_make_submitted'] ) && wp_verify_nonce( $_POS
 		</div>
     
 			
-<?php if (!$post_id and is_user_logged_in() ) : //hide form if we had success ?>
+	<?php if ( is_user_logged_in() and !$is_published ) : // show form if logged in and it has not been published ?>
 			
-	<form  id="comparatorform" class="comparatorform" method="post" action="" enctype="multipart/form-data">
+	<form  id="comparatorform" class="comparatorform" method="post" action="">
 	
 	
 	<div class="clearfix row">
@@ -238,12 +244,11 @@ if ( isset( $_POST['comparator_form_make_submitted'] ) && wp_verify_nonce( $_POS
 				<label for="cTitle"><?php _e('Title', 'wpbootstrap' ) ?></label><br />
 				<input type="text" name="cTitle" id="cTitle" class="required" value="<?php  echo $cTitle; ?>" tabindex="5" />
 			</fieldset>			
-			
 
 			<fieldset>
 				<label for="cTags"><?php _e( 'Tags (optional)', 'wpbootstrap' ) ?></label>
 				<p><em>Separate tags with commas</em></p>
-				<input type="text" name="cTags" id="cTags" value="<?php  echo $cTags; ?>" tabindex="6" />
+				<input type="text" name="cTags" id="cTags" value="<?php echo $cTags; ?>" tabindex="6" />
 			</fieldset>
 		
 		</div>
@@ -260,7 +265,7 @@ if ( isset( $_POST['comparator_form_make_submitted'] ) && wp_verify_nonce( $_POS
 			<fieldset>
 				<?php wp_nonce_field( 'comparator_form_make', 'comparator_form_make_submitted' ); ?>
 	
-				<input type="submit" class="btn btn-primary" value="Make a Comparator" id="makeit" name="makeit" tabindex="15">
+				<input type="submit" class="pretty-button pretty-button-green" value="Make a Comparator" id="makeit" name="makeit" tabindex="15">
 			</fieldset>
 			
 						
@@ -270,9 +275,7 @@ if ( isset( $_POST['comparator_form_make_submitted'] ) && wp_verify_nonce( $_POS
 
  		
 </form>
-<?php endif?>
+	<?php endif?>
 			
-			
-    
-</div> <!-- end #formcontent -->
+	
 <?php get_footer(); ?>

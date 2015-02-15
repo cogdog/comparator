@@ -37,7 +37,7 @@ if ($hide_wp) {
 						<section class="post_content clearfix" itemprop="articleBody">
 						
 						
-						<div class="center-block" style="width: <?php echo $comp_size_options[$compsize][0]?>px">
+						<div class="center-block" id="comparator" style="width: <?php echo $comp_size_options[$compsize][0]?>px">
 							<!-- begin before/after placement -->
 							<div id="container">
 								<?php
@@ -63,10 +63,10 @@ if ($hide_wp) {
 							
 							<?php if (!$hide_wp):?>
 							<p><strong>Sharable link:</strong> <a href="<?php the_permalink();?>?show=1" target="_blank"><?php the_permalink();?>?show=1</a><br />
-							<strong>Embed Code:</strong> For now this will not work in Wordpress (getting jquery conflicts), but will work in stand along HTML. Click to select:</p>
+							<strong>Embed Code:</strong> Click to select:</p>
 							
 							<form>
-							<textarea style="width:100%; height: 3em;" onClick="this.select();"><iframe src="<?php echo site_url(); ?>/embed/?cid=<?php echo get_the_ID()?>" width="<?php echo ($comp_size_options[$compsize][0] + 20);?>" height="<?php echo ($comp_size_options[$compsize][1] + 40);?>"  style="border:none;"/></textarea>
+							<textarea style="width:100%; height: 3em;" onClick="this.select();"><iframe src="<?php echo site_url(); ?>/embed/?cid=<?php echo get_the_ID()?>" width="<?php echo ($comp_size_options[$compsize][0] + 20);?>" height="<?php echo ($comp_size_options[$compsize][1] + 40);?>"  style="border:none;"/></iframe></textarea>
 							</form>
 							
 							<?php the_tags('<p class="tags"><span class="tags-title">' . __("Tags","wpbootstrap") . ':</span> ', ' ', '</p>'); ?>

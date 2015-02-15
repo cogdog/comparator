@@ -18,21 +18,24 @@
 		<!-- end of wordpress head -->
 		
 		<!-- last and not least, any override css we might need because loco is crazy -->
-		<?php echo '<link rel="stylesheet" href="' . get_stylesheet_directory_uri() . '/locomoco.css?v=0.05" type="text/css" media="all">'?>
+		<?php echo '<link rel="stylesheet" href="' . get_stylesheet_directory_uri() . '/locomoco.css?v=0.12" type="text/css" media="all">'?>
 		
 		<?php if (show_comparator() ): ?>
 			
 		<script type="text/javascript">
 			jQuery(window).load(function() {
 				jQuery('#container').beforeAfter({
-					imagePath : true,		
+							
 				});
 				jQuery('#container').draggable();
 			});
 			
 			
 			<?php if ( is_page('make') ) :?>
-			jQuery('#cTags').suggest("<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=ajax-tag-search&tax=post_tag", {multiple:true, multipleSep: ","});		
+			jQuery(document).ready(function() { 
+
+				jQuery('#cTags').suggest("<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=ajax-tag-search&tax=post_tag", {multiple:true, multipleSep: ","});
+			});		
 			<?php endif?>
 			
 		</script>

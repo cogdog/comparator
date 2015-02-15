@@ -15,9 +15,9 @@
 						<?php wp_bootstrap_footer_links(); // Adjust using Menus in Wordpress Admin ?>
 					</nav>
 					
-					<p class="pull-right"><a href="http://cogdog.ingo" id="credit320" title="By the dog">blame @cogdog</a></p>
+					<p class="pull-right"><a href="http://cogdog.info" id="credit320" title="By the dog">blame @cogdog</a></p>
 			
-					<p class="attribution">A SPLOT on the web <?php bloginfo('name'); ?></p>
+					<p class="attribution">A SPLOT on the web: <a href="<?php echo  site_url()?>"><?php bloginfo('name'); ?></a> <?php splot_the_author();?></p>
 				
 				</div> <!-- end #inner-footer -->
 				
